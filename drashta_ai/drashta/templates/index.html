@@ -1,0 +1,19 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Drashta AI</title>
+<style>body{font-family:system-ui,sans-serif;margin:0;background:#f6f4ef;color:#222}main{max-width:720px;margin:0 auto;padding:12px}
+#banner{background:#fff3cd;border:1px solid #e0c36a;padding:8px;border-radius:6px;font-size:14px}
+#log{height:60vh;overflow:auto;background:#fff;border:1px solid #ddd;border-radius:6px;padding:8px;margin:8px 0}
+.m{white-space:pre-wrap;margin:6px 0;padding:8px;border-radius:6px;font-size:14px}.b{background:#eef2f7}.u{background:#e8f5e9;text-align:right}
+form{display:flex;gap:6px}input{flex:1;padding:8px}button{padding:8px 12px}small{color:#666}</style></head><body><main>
+<h2 id="t">Drashta AI</h2><div id="banner"></div><div id="log"></div>
+<form id="f"><input id="i" maxlength="500" autocomplete="off" placeholder="Type here"><button>Send</button></form>
+<small>Interpretive reading, not a scientific prediction. <a href="#" id="del">Delete my session data</a></small></main>
+<script>
+let sid=null;const log=document.getElementById('log');
+function add(t,c){const d=document.createElement('div');d.className='m '+c;d.textContent=t;log.appendChild(d);log.scrollTop=log.scrollHeight}
+function banner(m){document.getElementById('banner').textContent=m==='demo'?'DEMO MODE: no AI model is connected. Replies are rule-based and calculated by the chart engine.':'Live AI model connected. Chart facts are still calculated deterministically.'}
+async function start(){const r=await (await fetch('/api/session',{method:'POST'})).json();sid=r.session_id;banner(r.mode);add(r.reply,'b')}
+document.getElementById('f').onsubmit=async e=>{e.preventDefault();const i=document.getElementById('i');const v=i.value.trim();if(!v||!sid)return;i.value='';add(v,'u');
+const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({session_id:sid,message:v})});const j=await r.json();add(j.reply||j.error,'b');if(j.mode)banner(j.mode)};
+document.getElementById('del').onclick=async e=>{e.preventDefault();if(sid){await fetch('/api/session/'+sid,{method:'DELETE'});log.innerHTML='';sid=null;await start()}};
+start();
+</script></body></html>

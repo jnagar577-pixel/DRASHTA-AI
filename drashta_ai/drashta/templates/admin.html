@@ -1,0 +1,17 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Drashta admin</title><style>body{font-family:system-ui;max-width:900px;margin:20px auto;padding:0 10px}pre{background:#f3f3f3;padding:8px;overflow:auto}input,textarea{width:100%;box-sizing:border-box}</style></head><body>
+<h2>Drashta AI - Owner panel</h2>
+<div id="login"><input id="pw" type="password" placeholder="Admin password"><button onclick="login()">Log in</button></div>
+<div id="panel" hidden>
+<h3>Settings</h3><textarea id="s" rows="9"></textarea><button onclick="save()">Save settings (JSON)</button> <small>API keys are set in the server environment, never here.</small>
+<h3>Knowledge &amp; coverage</h3><pre id="k"></pre><button onclick="exp()">Export JSON</button> <button onclick="del()">Delete ALL session data</button>
+<h3>Recent errors</h3><pre id="e"></pre></div>
+<script>
+const H={'Content-Type':'application/json','X-Requested-With':'drashta'};
+async function j(u,o={}){const r=await fetch(u,{headers:H,...o});return r.json()}
+async function login(){const r=await fetch('/admin/login',{method:'POST',headers:H,body:JSON.stringify({password:pw.value})});if(r.ok)load();else alert('Login failed')}
+async function load(){login_.hidden=true;panel.hidden=false;s.value=JSON.stringify(await j('/admin/api/settings'),null,2);const k=await j('/admin/api/knowledge');kk.textContent=JSON.stringify(k,null,1);ee.textContent=JSON.stringify(await j('/admin/api/events'),null,1)}
+const login_=document.getElementById('login'),panel=document.getElementById('panel'),s=document.getElementById('s'),pw=document.getElementById('pw'),kk=document.getElementById('k'),ee=document.getElementById('e');
+async function save(){const o=JSON.parse(s.value);delete o.api_key_configured;alert(JSON.stringify(await j('/admin/api/settings',{method:'PUT',body:JSON.stringify(o)})).slice(0,80));load()}
+async function exp(){const d=await j('/admin/api/export');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(d,null,1)]));a.download='knowledge.json';a.click()}
+async function del(){if(confirm('Delete all user sessions?'))alert(JSON.stringify(await j('/admin/api/sessions',{method:'DELETE'})))}
+</script></body></html>
